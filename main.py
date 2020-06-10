@@ -4,7 +4,6 @@ import argparse
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.autograd import Variable
 from data import generator
 from utils import io_utils
 import models.models as models
@@ -100,7 +99,7 @@ def train_batch(model, data):
     # Loss
     label_x_numpy = label_x.cpu().data.numpy()
     formatted_label_x = np.argmax(label_x_numpy, axis=1)
-    formatted_label_x = Variable(torch.LongTensor(formatted_label_x))
+    formatted_label_x = torch.LongTensor(formatted_label_x)
     if args.cuda:
         formatted_label_x = formatted_label_x.cuda()
     loss = F.nll_loss(logsoft_prob, formatted_label_x)
@@ -148,7 +147,7 @@ def train():
         ####################
         data = train_loader.get_task_batch(batch_size=args.batch_size, n_way=args.train_N_way,
                                            unlabeled_extra=args.unlabeled_extra, num_shots=args.train_N_shots,
-                                           cuda=args.cuda, variable=True)
+                                           cuda=args.cuda)
         [batch_x, label_x, _, _, batches_xi, labels_yi, oracles_yi, hidden_labels] = data
 
         opt_enc_nn.zero_grad()
@@ -160,20 +159,19 @@ def train():
         opt_enc_nn.step()
         opt_metric_nn.step()
 
-
         adjust_learning_rate(optimizers=[opt_enc_nn, opt_metric_nn], lr=args.lr, iter=batch_idx)
 
         ####################
         # Display
         ####################
         counter += 1
-        total_loss += loss_d_metric.data[0]
+        total_loss += loss_d_metric.item()
         if batch_idx % args.log_interval == 0:
-                display_str = 'Train Iter: {}'.format(batch_idx)
-                display_str += '\tLoss_d_metric: {:.6f}'.format(total_loss/counter)
-                io.cprint(display_str)
-                counter = 0
-                total_loss = 0
+            display_str = 'Train Iter: {}'.format(batch_idx)
+            display_str += '\tLoss_d_metric: {:.6f}'.format(total_loss/counter)
+            io.cprint(display_str)
+            counter = 0
+            total_loss = 0
 
         ####################
         # Test

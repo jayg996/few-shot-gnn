@@ -4,7 +4,6 @@
 # Pytorch requirements
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import torch.nn.functional as F
 
 if torch.cuda.is_available():
@@ -116,6 +115,7 @@ class Wcompute(nn.Module):
             W_new = W_new.view(W_new_size)
             # Softmax applied
             W_new = torch.transpose(W_new, 2, 3)
+        return W_new
 
         elif self.activation == 'sigmoid':
             W_new = F.sigmoid(W_new)
@@ -158,7 +158,7 @@ class GNN_nl_omniglot(nn.Module):
         self.layer_last = Gconv(self.input_features + int(self.nf / 2) * self.num_layers, args.train_N_way, 2, bn_bool=True)
 
     def forward(self, x):
-        W_init = Variable(torch.eye(x.size(1)).unsqueeze(0).repeat(x.size(0), 1, 1).unsqueeze(3))
+        W_init = torch.eye(x.size(1)).unsqueeze(0).repeat(x.size(0), 1, 1).unsqueeze(3)
         if self.args.cuda:
             W_init = W_init.cuda()
 
@@ -201,7 +201,7 @@ class GNN_nl(nn.Module):
         self.layer_last = Gconv(self.input_features + int(self.nf / 2) * self.num_layers, args.train_N_way, 2, bn_bool=False)
 
     def forward(self, x):
-        W_init = Variable(torch.eye(x.size(1)).unsqueeze(0).repeat(x.size(0), 1, 1).unsqueeze(3))
+        W_init = torch.eye(x.size(1)).unsqueeze(0).repeat(x.size(0), 1, 1).unsqueeze(3)
         if self.args.cuda:
             W_init = W_init.cuda()
 
@@ -280,7 +280,7 @@ class GNN_active(nn.Module):
         decision = decision.detach()
 
         mapping = torch.FloatTensor(decision.size(0),x_active.size(1)).zero_()
-        mapping = Variable(mapping)
+        mapping = mapping
         if self.args.cuda:
             mapping = mapping.cuda()
         mapping.scatter_(1, decision, 1)
@@ -290,7 +290,7 @@ class GNN_active(nn.Module):
 
         label2add = mapping_bp*oracles_yi #bsxNodesxN_way
         padd = torch.zeros(x.size(0), x.size(1), x.size(2) - label2add.size(2))
-        padd = Variable(padd).detach()
+        padd = padd.detach()
         if self.args.cuda:
             padd = padd.cuda()
         label2add = torch.cat([label2add, padd], 2)
@@ -300,7 +300,7 @@ class GNN_active(nn.Module):
 
 
     def forward(self, x, oracles_yi, hidden_labels):
-        W_init = Variable(torch.eye(x.size(1)).unsqueeze(0).repeat(x.size(0), 1, 1).unsqueeze(3))
+        W_init = torch.eye(x.size(1)).unsqueeze(0).repeat(x.size(0), 1, 1).unsqueeze(3)
         if self.args.cuda:
             W_init = W_init.cuda()
 
@@ -333,7 +333,7 @@ if __name__ == '__main__':
     W2 = torch.ones(N).unsqueeze(0).unsqueeze(-1).expand(bs, N, N, 1)
     J = 2
     W = torch.cat((W1, W2), 3)
-    input = [Variable(W), Variable(x)]
+    input = [W, x]
     ######################### test gmul ##############################
     # feature_maps = [num_features, num_features, num_features]
     # out = gmul(input)
@@ -345,7 +345,7 @@ if __name__ == '__main__':
     # print(out.size())
     ######################### test gnn ##############################
     # x = torch.ones((bs, N, 1))
-    # input = [Variable(W), Variable(x)]
+    # input = [W, x]
     # gnn = GNN(num_features, num_layers, J)
     # out = gnn(input)
     # print(out.size())

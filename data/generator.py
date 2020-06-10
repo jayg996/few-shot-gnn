@@ -3,7 +3,6 @@ import torch.utils.data as data
 import torch
 import numpy as np
 import random
-from torch.autograd import Variable
 from . import omniglot
 from . import mini_imagenet
 
@@ -44,7 +43,7 @@ class Generator(data.Dataset):
             rotated_image[channel, :, :] = np.rot90(image[channel, :, :], k=times)
         return rotated_image
 
-    def get_task_batch(self, batch_size=5, n_way=20, num_shots=1, unlabeled_extra=0, cuda=False, variable=False):
+    def get_task_batch(self, batch_size=5, n_way=20, num_shots=1, unlabeled_extra=0, cuda=False):
         # Init variables
         batch_x = np.zeros((batch_size, self.input_channels, self.size[0], self.size[1]), dtype='float32')
         labels_x = np.zeros((batch_size, n_way), dtype='float32')
@@ -104,8 +103,6 @@ class Generator(data.Dataset):
                       torch.from_numpy(hidden_labels)]
         if cuda:
             return_arr = self.cast_cuda(return_arr)
-        if variable:
-            return_arr = self.cast_variable(return_arr)
         return return_arr
 
     def cast_cuda(self, input):
@@ -114,13 +111,4 @@ class Generator(data.Dataset):
                 input[i] = self.cast_cuda(input[i])
         else:
             return input.cuda()
-        return input
-
-    def cast_variable(self, input):
-        if type(input) == type([]):
-            for i in range(len(input)):
-                input[i] = self.cast_variable(input[i])
-        else:
-            return Variable(input)
-
         return input

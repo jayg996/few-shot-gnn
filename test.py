@@ -1,7 +1,6 @@
 import numpy as np
 from utils import io_utils
 from data import generator
-from torch.autograd import Variable
 
 
 def test_one_shot(args, model, test_samples=5000, partition='test'):
@@ -31,11 +30,10 @@ def test_one_shot(args, model, test_samples=5000, partition='test'):
         else:
             labels_yi = labels_yi_cpu
 
-        xi_s = [Variable(batch_xi) for batch_xi in xi_s]
-        labels_yi = [Variable(label_yi) for label_yi in labels_yi]
-        oracles_yi = [Variable(oracle_yi) for oracle_yi in oracles_yi]
-        hidden_labels = Variable(hidden_labels)
-        x = Variable(x)
+        xi_s = [batch_xi for batch_xi in xi_s]
+        labels_yi = [label_yi for label_yi in labels_yi]
+        oracles_yi = [oracle_yi for oracle_yi in oracles_yi]
+        hidden_labels = hidden_labels
 
         # Compute embedding from x and xi_s
         z = enc_nn(x)[-1]

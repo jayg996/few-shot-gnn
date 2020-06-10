@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 
 from models import gnn_iclr
 
@@ -122,7 +121,7 @@ class MetricNN(nn.Module):
 
     def gnn_iclr_forward(self, z, zi_s, labels_yi):
         # Creating WW matrix
-        zero_pad = Variable(torch.zeros(labels_yi[0].size()))
+        zero_pad = torch.zeros(labels_yi[0].size())
         if self.args.cuda:
             zero_pad = zero_pad.cuda()
 
@@ -140,7 +139,7 @@ class MetricNN(nn.Module):
 
     def gnn_iclr_active_forward(self, z, zi_s, labels_yi, oracles_yi, hidden_layers):
         # Creating WW matrix
-        zero_pad = Variable(torch.zeros(labels_yi[0].size()))
+        zero_pad = torch.zeros(labels_yi[0].size())
         if self.args.cuda:
             zero_pad = zero_pad.cuda()
 
